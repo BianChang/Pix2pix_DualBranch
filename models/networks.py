@@ -1407,7 +1407,7 @@ class ResnetGeneratorSwinT(nn.Module):
 
 
 class GatedCrossAttention(nn.Module):
-    def __init__(self, cnn_channels, swinT_channels, num_heads=8, k=1500, upsample_factor=5):
+    def __init__(self, cnn_channels, swinT_channels, num_heads=8, k=1000, upsample_factor=5):
         super(GatedCrossAttention, self).__init__()
 
         self.swinT_transform = nn.Conv2d(swinT_channels, cnn_channels, kernel_size=1)
