@@ -64,6 +64,11 @@ if __name__ == '__main__':
 
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
+
+    if os.path.isfile(opt.pretrained):
+        model.load_state_dict(torch.load(opt.pretrained))
+        print(f"Loaded pretrained weights from {opt.pretrained}")
+
     visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
     total_iters = 0                # the total number of training iterations
 
