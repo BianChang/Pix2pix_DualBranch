@@ -66,10 +66,6 @@ if __name__ == '__main__':
     model = create_model(opt)      # create a model given opt.model and other options
     model.setup(opt)               # regular setup: load and print networks; create schedulers
 
-    if os.path.isfile(opt.pretrained):
-        model.load_state_dict(torch.load(opt.pretrained))
-        print(f"Loaded pretrained weights from {opt.pretrained}")
-
     visualizer = Visualizer(opt)   # create a visualizer that display/save images and plots
     total_iters = 0                # the total number of training iterations
 
@@ -82,7 +78,7 @@ if __name__ == '__main__':
         iter_data_time = time.time()    # timer for data loading per iteration
         epoch_iter = 0                  # the number of training iterations in current epoch, reset to 0 every epoch
         visualizer.reset()              # reset the visualizer: make sure it saves the results to HTML at least once every epoch
-        # model.update_learning_rate()    # update learning rates in the beginning of every epoch.
+        model.update_learning_rate()    # update learning rates in the beginning of every epoch.
         for i, data in tqdm(enumerate(dataset), total=len(dataset), desc="Training Epoch %d" % epoch):  # inner loop within one epoch
             print('TRAINING')
             iter_start_time = time.time()  # timer for computation per iteration
