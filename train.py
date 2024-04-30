@@ -31,6 +31,7 @@ from util import util
 from data.aligned_dataset import AlignedDataset
 import csv
 from tqdm import tqdm
+import os
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
