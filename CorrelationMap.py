@@ -81,12 +81,12 @@ def process_images(folder_path):
 
         # Overlay Pearson Correlation
         plt.text(0.05, 0.95, f'ρ= {correlations[key]:.3f}', verticalalignment='top', horizontalalignment='left',
-                 transform=plt.gca().transAxes, color='black', fontsize=12, bbox=dict(facecolor='white', alpha=0.8))
+                 transform=plt.gca().transAxes, color='black', fontsize=12, bbox=dict(facecolor='white', alpha=0.4))
 
         # Save the figure
         plt.savefig(os.path.join(folder_path, f'{key}_confusion_matrix.png'))
         plt.close()  # Close the plot to avoid displaying it in the notebook
 
 # Example usage
-folder_path = r'D:\Chang_files\work_records\swinT\insillico\InSillico_PixpixResnet_B\test_25\images'
+folder_path = r'D:\Chang_files\work_records\swinT\pix2pixHD\images'
 process_images(folder_path)
