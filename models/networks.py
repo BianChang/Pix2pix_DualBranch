@@ -1414,6 +1414,11 @@ class GatedCrossAttention(nn.Module):
 
         self.attention = nn.MultiheadAttention(embed_dim=cnn_channels, num_heads=num_heads)
 
+        self.gate = nn.Sequential(
+            nn.Conv2d(cnn_channels, 1, kernel_size=1),
+            nn.Sigmoid()
+        )
+        '''
         self.cnn_gate = nn.Sequential(
             nn.Conv2d(cnn_channels, 1, kernel_size=1),
             nn.Sigmoid()
@@ -1422,6 +1427,7 @@ class GatedCrossAttention(nn.Module):
             nn.Conv2d(cnn_channels, 1, kernel_size=1),
             nn.Sigmoid()
         )
+        '''
         # Predefine the upsampling blocks based on the upsample_factor
         self.upsample_blocks = nn.ModuleList([
             nn.Sequential(
@@ -1440,32 +1446,32 @@ class GatedCrossAttention(nn.Module):
             swinT_features = upsample_block(swinT_features)
 
         # Calculate gate values
-        # gate_values = self.gate(downsampling_features)
-        cnn_gate_values = self.cnn_gate(downsampling_features)
-        swinT_gate_values = self.swinT_gate(swinT_features)
+        gate_values = self.gate(downsampling_features)
+        # cnn_gate_values = self.cnn_gate(downsampling_features)
+        # swinT_gate_values = self.swinT_gate(swinT_features)
 
         # Flatten and permute for attention module
         down_features_flat = downsampling_features.flatten(2).permute(2, 0, 1)
         swinT_features_flat = swinT_features.flatten(2).permute(2, 0, 1)
 
         # Select top-k activations to apply attention
-        #_, top_indices = torch.topk(gate_values.view(gate_values.size(0), -1), k=self.k, dim=1)
-        _, cnn_top_indices = torch.topk(cnn_gate_values.view(cnn_gate_values.size(0), -1), k=self.k, dim=1)
-        _, swinT_top_indices = torch.topk(swinT_gate_values.view(swinT_gate_values.size(0), -1), k=self.k, dim=1)
+        _, top_indices = torch.topk(gate_values.view(gate_values.size(0), -1), k=self.k, dim=1)
+        # _, cnn_top_indices = torch.topk(cnn_gate_values.view(cnn_gate_values.size(0), -1), k=self.k, dim=1)
+        # _, swinT_top_indices = torch.topk(swinT_gate_values.view(swinT_gate_values.size(0), -1), k=self.k, dim=1)
 
-        #down_features_subset = torch.index_select(down_features_flat, 0, top_indices.view(-1))
-        #swinT_features_subset = torch.index_select(swinT_features_flat, 0, top_indices.view(-1))
-        cnn_features_subset = torch.index_select(down_features_flat, 0, cnn_top_indices.view(-1))
-        swinT_features_subset = torch.index_select(swinT_features_flat, 0, swinT_top_indices.view(-1))
+        down_features_subset = torch.index_select(down_features_flat, 0, top_indices.view(-1))
+        swinT_features_subset = torch.index_select(swinT_features_flat, 0, top_indices.view(-1))
+        #cnn_features_subset = torch.index_select(down_features_flat, 0, cnn_top_indices.view(-1))
+        #swinT_features_subset = torch.index_select(swinT_features_flat, 0, swinT_top_indices.view(-1))
 
         # Apply attention only on the subset
-        #attended_features_subset, _ = self.attention(down_features_subset, swinT_features_subset, swinT_features_subset)
-        attended_features_subset, _ = self.attention(cnn_features_subset, swinT_features_subset, swinT_features_subset)
+        attended_features_subset, _ = self.attention(down_features_subset, swinT_features_subset, swinT_features_subset)
+        #attended_features_subset, _ = self.attention(cnn_features_subset, swinT_features_subset, swinT_features_subset)
 
         # Scatter back the attended values to original size tensor
         attended_features = down_features_flat.clone()
-        #attended_features.index_copy_(0, top_indices.view(-1), attended_features_subset)
-        attended_features.index_copy_(0, cnn_top_indices.view(-1), attended_features_subset)
+        attended_features.index_copy_(0, top_indices.view(-1), attended_features_subset)
+        #attended_features.index_copy_(0, cnn_top_indices.view(-1), attended_features_subset)
 
         # Reshape to [B, C, H, W]
         attended_features = attended_features.permute(1, 2, 0).view_as(downsampling_features)
