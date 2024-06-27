@@ -61,62 +61,65 @@ def compute_ssim(directory_name):
             csv_writer.writerow([nosuff_name,dapi_score,cd3_score,panck_score,average_score])
     f.close()
 
+
 def compute_metrics(directory_name):
     csv_path = os.path.join(directory_name, 'score.csv')
-    f = open(csv_path, 'w', encoding='utf-8', newline='')
-    csv_writer = csv.writer(f)
-    csv_writer.writerow(['file_name', 'dapi', 'cd3', 'panck', 'average_ssim','dapi_pr','cd3_pr','panck_pr',
-                         'average_pearson', 'dapi_psnr', 'cd3_psnr', 'panck_psnr', 'average_psnr'])
-    for filename in os.listdir(r"./" + directory_name):
-        if filename.endswith('_fake_B.tif'):
-            fake_mihc = imread(directory_name + "/" + filename)
-            nosuff_name = filename[0:-11]
-            real_mihc_name = filename[0:-10] + 'real_B.tif'
-            real_mihc = imread(directory_name + '/' + real_mihc_name)
-            real_dapi = real_mihc[:, :, 0]
-            real_cd3 = real_mihc[:, :, 1]
-            real_panck = real_mihc[:, :, 2]
 
-            fake_dapi = fake_mihc[:, :, 0]
-            fake_cd3 = fake_mihc[:, :, 1]
-            fake_panck = fake_mihc[:, :, 2]
+    with open(csv_path, 'w', encoding='utf-8', newline='') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow([
+            'file_name', 'dapi_ssim', 'cd3_ssim', 'panck_ssim', 'average_ssim',
+            'dapi_pearson', 'cd3_pearson', 'panck_pearson', 'average_pearson',
+            'dapi_psnr', 'cd3_psnr', 'panck_psnr', 'average_psnr'
+        ])
 
-            dapi_score = ssim(real_dapi, fake_dapi, data_range=255, multichannel=True)
-            cd3_score = ssim(real_cd3, fake_cd3, data_range=255, multichannel=True)
-            panck_score = ssim(real_panck, fake_panck, data_range=255, multichannel=True)
-            average_score = np.average([dapi_score, cd3_score, panck_score])
+        for filename in os.listdir(directory_name):
+            if filename.endswith('_fake_B.tif'):
+                path_to_file = os.path.join(directory_name, filename)
+                fake_image = imread(path_to_file)
+                base_name = filename[:-11]
+                real_image_name = base_name + 'real_B.tif'
+                real_image_path = os.path.join(directory_name, real_image_name)
+                real_image = imread(real_image_path)
 
-            tiny = 1e-15
-            dapi_f = np.array(fake_dapi).flatten().astype(float)
-            dapi_f[0] = dapi_f[0] + tiny
-            dapi_r = np.array(real_dapi).flatten().astype(float)
-            dapi_r[0] = dapi_r[0] + tiny
-            cd3_f = np.array(fake_cd3).flatten().astype(float)
-            cd3_f[0] = cd3_f[0] + tiny
-            cd3_r = np.array(real_cd3).flatten().astype(float)
-            cd3_r[0] = cd3_r[0] + tiny
-            panck_f = np.array(fake_panck).flatten().astype(float)
-            panck_f[0] = panck_f[0] + tiny
-            panck_r = np.array(real_panck).flatten().astype(float)
-            panck_r[0] = panck_r[0] + tiny
-            corr_dapi = np.corrcoef(dapi_f, dapi_r)
-            corr_dapi = corr_dapi[0, 1]
-            corr_cd3 = np.corrcoef(cd3_f, cd3_r)
-            corr_cd3 = corr_cd3[0, 1]
-            corr_panck = np.corrcoef(panck_f, panck_r)
-            corr_panck = corr_panck[0, 1]
-            corr_average = (corr_dapi + corr_cd3 + corr_panck) / 3
+                # Extract channels
+                channels = ['dapi', 'cd3', 'panck']
+                ssim_scores = []
+                pearson_correlations = []
+                psnr_scores = []
+                tiny = 1e-15  # tiny constant to avoid numerical issues
 
-            psnr_dapi = peak_signal_noise_ratio(fake_dapi, real_dapi)
-            psnr_cd3 = peak_signal_noise_ratio(fake_cd3, real_cd3)
-            psnr_panck = peak_signal_noise_ratio(fake_panck, real_panck)
+                for i, channel in enumerate(channels):
+                    real_channel = real_image[:, :, i].astype(float)
+                    fake_channel = fake_image[:, :, i].astype(float)
 
-            psnr_average = (psnr_dapi + psnr_cd3 + psnr_panck) / 3
+                    # Adding tiny value to avoid zero values which can affect correlation computation
+                    real_channel[0, 0] += tiny
+                    fake_channel[0, 0] += tiny
 
-            csv_writer.writerow([nosuff_name, dapi_score, cd3_score, panck_score, average_score, corr_dapi,
-                                 corr_cd3, corr_panck, corr_average, psnr_dapi, psnr_cd3, psnr_panck,
-                                 psnr_average])
-    f.close()
+                    # Compute SSIM
+                    ssim_score = ssim(real_channel, fake_channel, data_range=real_channel.max() - real_channel.min())
+                    ssim_scores.append(ssim_score)
+
+                    # Compute Pearson correlation coefficient
+                    pearson_corr = np.corrcoef(real_channel.flatten(), fake_channel.flatten())[0, 1]
+                    pearson_correlations.append(pearson_corr)
+
+                    # Compute PSNR
+                    psnr_score = peak_signal_noise_ratio(real_channel, fake_channel)
+                    psnr_scores.append(psnr_score)
+
+                # Calculate averages
+                average_ssim = np.mean(ssim_scores)
+                average_pearson = np.mean(pearson_correlations)
+                average_psnr = np.mean(psnr_scores)
+
+                # Write results to CSV
+                csv_writer.writerow([
+                    base_name, *ssim_scores, average_ssim,
+                    *pearson_correlations, average_pearson,
+                    *psnr_scores, average_psnr
+                ])
 
 
 def compute_dapi_ssim(directory_name):
