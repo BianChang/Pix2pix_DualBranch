@@ -209,12 +209,12 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--srcdir", type=str, help="process this directory.")
-    parser.add_argument("--outdir", type=str, help="save in this directory.")
+    # parser.add_argument("--outdir", type=str, help="save in this directory.")
     args = parser.parse_args()
     directory_name = args.srcdir
     subdir = args.outdir
-    #process_directory(directory_name, subdir)
-    #compute_ssim(directory_name)
+    # process_directory(directory_name, subdir)
+    # compute_ssim(directory_name)
     compute_metrics(directory_name)
 
 
