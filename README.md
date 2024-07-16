@@ -2,7 +2,7 @@
 
 ## Description
 
-This repository contains the source code of the proposed network and evaluation scheme for our submission. It has been anonymized for double-blind review purposes. The final version of the project will be updated and made publicly available upon acceptance and preparation of the camera-ready version.
+This repository contains the source code of the proposed network and evaluation scheme. 
 
 ## Training Instructions
 
@@ -57,3 +57,11 @@ This command configures the training as follows:
 python post_process.py --srcdir results/hemit_SwinTResnet_New/test_20/
 ```
 This command calculates the evaluation metrics on the generated results and outputs a CSV file for documentation.
+
+### Citation
+
+If you use this code or dataset in your research, please cite our work. The paper has been accepted by the 5th International Workshop on Multiscale Multimodal Medical Imaging (MMMI 2024) and The 1st Workshop on Machine Learning for Multimodal/-sensor Healthcare Data (ML4MHD 2024). 
+
+We will provide full citation details once it is published.
+
+Please check back later for the complete citation information.
