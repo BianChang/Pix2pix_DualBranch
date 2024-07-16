@@ -57,8 +57,3 @@ This command configures the training as follows:
 python post_process.py --srcdir results/hemit_SwinTResnet_New/test_20/
 ```
 This command calculates the evaluation metrics on the generated results and outputs a CSV file for documentation.
-
-
-## Anonymity Notice
-
-Please note that this repository is anonymized to comply with the submission requirements for double-blind review. All personal identifiers have been removed or obscured.
