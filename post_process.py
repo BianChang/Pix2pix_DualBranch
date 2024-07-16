@@ -209,20 +209,7 @@ if __name__=='__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--srcdir", type=str, help="process this directory.")
-    # parser.add_argument("--outdir", type=str, help="save in this directory.")
     args = parser.parse_args()
     directory_name = args.srcdir
     subdir = args.outdir
-    # process_directory(directory_name, subdir)
-    # compute_ssim(directory_name)
     compute_metrics(directory_name)
-
-
-    '''
-    directory_name_dapi = 'results/mihc_pix2pix_0103_lr001_cosine_dapi/test_280/images'
-    directory_name_cd3 = 'results/mihc_pix2pix_0103_lr001_cosine_cd3/test_280/images'
-    directory_name_panck = 'results/mihc_pix2pix_0103_lr001_cosine_panck/test_280/images'
-    compute_dapi_ssim(directory_name_dapi)
-    compute_cd3_ssim(directory_name_cd3)
-    compute_panck_ssim(directory_name_panck)
-    '''
