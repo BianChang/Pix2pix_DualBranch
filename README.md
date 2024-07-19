@@ -2,12 +2,14 @@
 
 ## Description
 
-This repository contains the source code of the proposed network and evaluation scheme. 
+This repository contains the source code of the proposed network and evaluation scheme. The rationale behind the method and detailed explanations can be found in our paper. The HEMIT dataset details can be accessed at: [HEMIT](https://github.com/BianChang/HEMIT-DATASET).
 
 ## Training Instructions
 
 This section provides detailed instructions on how to train models using the provided scripts. The training process is flexible and supports various models and datasets.
-This repository's structure and training scripts are highly based on the original [pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) project by Jun-Yan Zhu and colleagues. For a comprehensive list of common commands and additional options, please refer to their [documentation](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix).
+This repository's structure and training scripts are highly based on the original [pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) project by Jun-Yan Zhu and colleagues. For a comprehensive list of common commands and additional options, please refer to the original work.
+
+We would like to extend our gratitude to the original pix2pix team for their work, which has significantly influenced and facilitated the development of this project.
 
 ### Prerequisites
 
