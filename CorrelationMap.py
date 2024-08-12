@@ -58,8 +58,8 @@ def process_images(folder_path):
         correlations[key] = pearsonr(real_hist, fake_hist)[0]
 
         # Plotting
-        plt.figure(figsize=(6, 6), dpi=300)
-        plt.imshow(matrix, cmap='tab20b', interpolation='nearest')
+        plt.figure(figsize=(5, 5), dpi=300)
+        plt.imshow(matrix, cmap='turbo', interpolation='nearest')
         #plt.colorbar()
 
         tick_positions = np.arange(num_bins + 1) - 0.5  # This includes one extra for the last edge
@@ -77,16 +77,17 @@ def process_images(folder_path):
         # Add text annotations for proportions
         for j in range(num_bins):
             for k in range(num_bins):
-                plt.text(k, j, f'{int(matrix[j, k])}', ha='center', va='center', color='white', fontsize=12)
+                plt.text(k, j, f'{int(matrix[j, k])}', ha='center', va='center', color='white', fontsize=15)
 
         # Overlay Pearson Correlation
-        plt.text(0.05, 0.95, f'ρ= {correlations[key]:.3f}', verticalalignment='top', horizontalalignment='left',
-                 transform=plt.gca().transAxes, color='black', fontsize=12, bbox=dict(facecolor='white', alpha=0.4))
+        plt.text(0.05, 0.05, f'ρ= {correlations[key]:.3f}', verticalalignment='bottom', horizontalalignment='left',
+                 transform=plt.gca().transAxes, color='black', fontsize=15, bbox=dict(facecolor='white', alpha=0.8))
 
         # Save the figure
+        plt.tight_layout()
         plt.savefig(os.path.join(folder_path, f'{key}_confusion_matrix.png'))
         plt.close()  # Close the plot to avoid displaying it in the notebook
 
 # Example usage
-folder_path = r'D:\Chang_files\work_records\swinT\pix2pixHD\images'
+folder_path = r'D:\Chang_files\work_records\swinT\insillico\InSillico_Resnet_B\test_60\images'
 process_images(folder_path)
