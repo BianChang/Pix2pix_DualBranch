@@ -42,7 +42,7 @@ if __name__ == '__main__':
     print('The total number of images = %d' % dataset_size)
 
     # Split the dataset into training and validation sets
-    val_split_ratio = 0.2  # Adjust this ratio as needed
+    val_split_ratio = 0.1  # Adjust this ratio as needed
     n_val = int(val_split_ratio * dataset_size)
     n_train = dataset_size - n_val
     dataset_train, dataset_validation = random_split(dataset_full, [n_train, n_val])
