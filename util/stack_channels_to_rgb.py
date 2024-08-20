@@ -4,12 +4,12 @@ import numpy as np
 import re
 
 # Paths to the three folders containing the channels
-red_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run4_mIHC\processed_images\channel_5'
-green_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run4_mIHC\processed_images\channel_9'
-blue_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run4_mIHC\processed_images\channel_1'
+red_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_bcl2'
+green_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_pax5'
+blue_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_dapi'
 
 # Output directories for normalized images and final RGB images
-output_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run4_mIHC\processed_images\RGB_3channels'
+output_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\RGB_Mihc'
 os.makedirs(output_dir, exist_ok=True)
 
 norm_red_dir = os.path.join(output_dir, 'normalized_channel_5')
@@ -28,7 +28,7 @@ def extract_prefix(filename):
     return None
 
 # Function to normalize the image intensity using contrast stretching
-def normalize_image(image, lower_percentile=0.5, upper_percentile=99.5):
+def normalize_image(image, lower_percentile=0, upper_percentile=100):
     img_array = np.array(image)
 
     # Compute the percentiles

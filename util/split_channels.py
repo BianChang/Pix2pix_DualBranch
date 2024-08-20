@@ -4,7 +4,7 @@ import tifffile as tiff
 import numpy as np
 
 # Directory containing multi-channel TIFF images
-input_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run4_mIHC'  # Change this to your folder path
+input_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_mIHC'  # Change this to your folder path
 output_dir = os.path.join(input_dir, 'processed_images')
 
 # Create the output directory if it doesn't exist
@@ -30,10 +30,10 @@ def process_tiff(file_path, output_base_dir):
                 channel_image = channel_image.rotate(-90, expand=True)
 
                 # Flip horizontally
-                # channel_image = channel_image.transpose(method=Image.FLIP_LEFT_RIGHT)
+                channel_image = channel_image.transpose(method=Image.FLIP_LEFT_RIGHT)
 
                 # Flip vertically
-                channel_image = channel_image.transpose(method=Image.FLIP_TOP_BOTTOM)
+                #channel_image = channel_image.transpose(method=Image.FLIP_TOP_BOTTOM)
 
                 # Append the transformed channel to the list
                 transformed_channels.append(np.array(channel_image))
