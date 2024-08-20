@@ -35,15 +35,19 @@ import os
 
 if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
-    dataset_train = AlignedDataset(opt)
-    n_train = len(dataset_train)
-    dataset_size = len(dataset_train)    # get the number of images in the dataset.
-    print('The number of training images = %d' % dataset_size)
 
-    # Update opt for the validation phase
-    opt.phase = 'val'
-    dataset_validation = AlignedDataset(opt)
-    n_val = len(dataset_validation)
+    # Load the full dataset
+    dataset_full = AlignedDataset(opt)
+    dataset_size = len(dataset_full)  # get the number of images in the dataset.
+    print('The total number of images = %d' % dataset_size)
+
+    # Split the dataset into training and validation sets
+    val_split_ratio = 0.2  # Adjust this ratio as needed
+    n_val = int(val_split_ratio * dataset_size)
+    n_train = dataset_size - n_val
+    dataset_train, dataset_validation = random_split(dataset_full, [n_train, n_val])
+
+    print('The number of training images = %d' % n_train)
     print('The number of validation images = %d' % n_val)
 
     dataset = torch.utils.data.DataLoader(
@@ -66,7 +70,7 @@ if __name__ == '__main__':
 
     f = open('./checkpoints/' + '%s/' % opt.name + 'validation_train.csv', 'w', encoding='utf-8', newline='') # record validation result
     csv_writer = csv.writer(f)
-    csv_writer.writerow(['epoch', 'dapi', 'cd3', 'panck', 'average'])
+    csv_writer.writerow(['epoch', 'dapi', 'bcl2', 'pax5', 'average'])
 
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch
