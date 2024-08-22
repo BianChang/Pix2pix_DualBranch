@@ -68,9 +68,9 @@ def compute_metrics(directory_name):
     with open(csv_path, 'w', encoding='utf-8', newline='') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow([
-            'file_name', 'dapi_ssim', 'cd3_ssim', 'panck_ssim', 'average_ssim',
-            'dapi_pearson', 'cd3_pearson', 'panck_pearson', 'average_pearson',
-            'dapi_psnr', 'cd3_psnr', 'panck_psnr', 'average_psnr'
+            'file_name', 'pax5_ssim', 'bcl2_ssim', 'dapi_ssim', 'average_ssim',
+            'pax5_pearson', 'bcl2_pearson', 'dapi_pearson', 'average_pearson',
+            'pax5_psnr', 'bcl2_psnr', 'dapi_psnr', 'average_psnr'
         ])
 
         for filename in os.listdir(directory_name):
@@ -78,7 +78,7 @@ def compute_metrics(directory_name):
                 path_to_file = os.path.join(directory_name, filename)
                 fake_image = imread(path_to_file)
                 base_name = filename[:-11]
-                real_image_name = base_name + 'real_B.tif'
+                real_image_name = base_name + '_real_B.tif'
                 real_image_path = os.path.join(directory_name, real_image_name)
                 real_image = imread(real_image_path)
 
