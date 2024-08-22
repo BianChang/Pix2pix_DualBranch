@@ -89,5 +89,5 @@ def process_images(folder_path):
         plt.close()  # Close the plot to avoid displaying it in the notebook
 
 # Example usage
-folder_path = r'D:\Chang_files\work_records\swinT\insillico\InSillico_Resnet_B\test_60\images'
+folder_path = r'D:\Chang_files\work_records\swinT\hl_SwinTResnet\test_55\images'
 process_images(folder_path)
