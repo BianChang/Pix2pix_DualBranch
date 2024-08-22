@@ -211,5 +211,4 @@ if __name__=='__main__':
     parser.add_argument("--srcdir", type=str, help="process this directory.")
     args = parser.parse_args()
     directory_name = args.srcdir
-    subdir = args.outdir
     compute_metrics(directory_name)
