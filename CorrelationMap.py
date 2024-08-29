@@ -5,6 +5,24 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from tqdm import tqdm
 
+
+def percentile_normalization(image, lower_percentile=0, upper_percentile=95):
+    """
+    Normalize the image using the specified lower and upper percentiles.
+    """
+    # Convert the image to a numpy array
+    image_array = np.array(image)
+
+    # Apply percentile normalization channel by channel
+    for i in range(image_array.shape[2]):  # Assuming the image has 3 channels (RGB)
+        lower = np.percentile(image_array[:, :, i], lower_percentile)
+        upper = np.percentile(image_array[:, :, i], upper_percentile)
+        image_array[:, :, i] = np.clip(image_array[:, :, i], lower, upper)
+        image_array[:, :, i] = (image_array[:, :, i] - lower) / (upper - lower) * 255
+
+    return Image.fromarray(image_array.astype(np.uint8))
+
+
 def process_images(folder_path):
     # List all files
     files = os.listdir(folder_path)
@@ -18,12 +36,15 @@ def process_images(folder_path):
     matrices = {channel: np.zeros((num_bins, num_bins)) for channel in ['red', 'green', 'blue', 'overall']}
     hist_data = {channel: {'real': [], 'fake': []} for channel in ['red', 'green', 'blue']}
 
-
     # Process each pair of real and fake images
     for real_file, fake_file in zip(real_files, fake_files):
         print(real_file)
         real_img = Image.open(os.path.join(folder_path, real_file))
         fake_img = Image.open(os.path.join(folder_path, fake_file))
+
+        # Apply percentile normalization
+        real_img = percentile_normalization(real_img)
+        fake_img = percentile_normalization(fake_img)
 
         # Convert images to numpy arrays
         real_data = np.array(real_img)
@@ -31,8 +52,8 @@ def process_images(folder_path):
 
         # Process each channel
         for i, color in enumerate(['red', 'green', 'blue']):
-            real_channel = real_data[:,:,i].flatten()
-            fake_channel = fake_data[:,:,i].flatten()
+            real_channel = real_data[:, :, i].flatten()
+            fake_channel = fake_data[:, :, i].flatten()
             hist_real, _ = np.histogram(real_channel, bins=num_bins, range=(0, 256))
             hist_fake, _ = np.histogram(fake_channel, bins=num_bins, range=(0, 256))
             hist_data[color]['real'].append(hist_real)
@@ -41,7 +62,8 @@ def process_images(folder_path):
             # Update the channel-specific matrix
             for j in range(num_bins):
                 for k in range(num_bins):
-                    matrices[color][j, k] += np.sum((real_channel // (256 // num_bins) == j) & (fake_channel // (256 // num_bins) == k))
+                    matrices[color][j, k] += np.sum(
+                        (real_channel // (256 // num_bins) == j) & (fake_channel // (256 // num_bins) == k))
 
         # Update the overall matrix (average of all channels)
         matrices['overall'] += (matrices['red'] + matrices['green'] + matrices['blue']) / 3
@@ -60,7 +82,7 @@ def process_images(folder_path):
         # Plotting
         plt.figure(figsize=(5, 5), dpi=300)
         plt.imshow(matrix, cmap='turbo', interpolation='nearest')
-        #plt.colorbar()
+        # plt.colorbar()
 
         tick_positions = np.arange(num_bins + 1) - 0.5  # This includes one extra for the last edge
         tick_labels = [f'{int(bin_edges[i])}' for i in range(num_bins)] + [
@@ -72,7 +94,7 @@ def process_images(folder_path):
         plt.grid(True, which='major', color='white', linewidth=2)
         plt.xlabel('Predicted Intensity')
         plt.ylabel('True Intensity')
-        #plt.title(f'Confusion Matrix - {key.capitalize()} Channel')
+        # plt.title(f'Confusion Matrix - {key.capitalize()} Channel')
 
         # Add text annotations for proportions
         for j in range(num_bins):
@@ -88,6 +110,7 @@ def process_images(folder_path):
         plt.savefig(os.path.join(folder_path, f'{key}_confusion_matrix.png'))
         plt.close()  # Close the plot to avoid displaying it in the notebook
 
+
 # Example usage
-folder_path = r'D:\Chang_files\work_records\swinT\hl_SwinTResnet\test_55\images'
+folder_path = r'D:\Chang_files\work_records\swinT\resnetswinT\images'
 process_images(folder_path)
