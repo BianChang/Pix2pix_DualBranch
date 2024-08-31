@@ -194,11 +194,11 @@ for he_file in os.listdir(hema_path):
         registered_dapi_image = sitk.Cast(sitk.RescaleIntensity(registered_dapi_image_float32, 0, 255), sitk.sitkUInt8)
         registered_cd20_image = sitk.Cast(sitk.RescaleIntensity(registered_cd20_image_float32, 0, 255), sitk.sitkUInt8)
         registered_cd4_image = sitk.Cast(sitk.RescaleIntensity(registered_cd4_image_float32, 0, 255), sitk.sitkUInt8)
-        registered_bcl2_image = sitk.Cast(sitk.RescaleIntensity(registered_bcl2_image_float32, 0, 255), sitk.sitk.UInt8)
-        registered_irf4_image = sitk.Cast(sitk.RescaleIntensity(registered_irf4_image_float32, 0, 255), sitk.sitk.UInt8)
+        registered_bcl2_image = sitk.Cast(sitk.RescaleIntensity(registered_bcl2_image_float32, 0, 255), sitk.sitkUInt8)
+        registered_irf4_image = sitk.Cast(sitk.RescaleIntensity(registered_irf4_image_float32, 0, 255), sitk.sitkUInt8)
         registered_cd15_image = sitk.Cast(sitk.RescaleIntensity(registered_cd15_image_float32, 0, 255), sitk.sitkUInt8)
-        registered_pax5_image = sitk.Cast(sitk.RescaleIntensity(registered_pax5_image_float32, 0, 255), sitk.sitk.UInt8)
-        registered_pd1_image = sitk.Cast(sitk.RescaleIntensity(registered_pd1_image_float32, 0, 255), sitk.sitk.UInt8)
+        registered_pax5_image = sitk.Cast(sitk.RescaleIntensity(registered_pax5_image_float32, 0, 255), sitk.sitkUInt8)
+        registered_pd1_image = sitk.Cast(sitk.RescaleIntensity(registered_pd1_image_float32, 0, 255), sitk.sitkUInt8)
 
         # Save the registered images
         print('Saving the final cropped images')
