@@ -2,23 +2,21 @@ import os
 from PIL import Image, ImageFilter
 import numpy as np
 import re
+import tifffile as tiff
 
-# Paths to the three folders containing the channels
-red_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_bcl2'
-green_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_pax5'
-blue_channel_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_dapi'
+# Paths to the folders containing the channels
+dapi_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_dapi'
+cd20_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_cd20'
+cd4_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_cd4'
+bcl2_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_bcl2'
+irf4_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_irf4'
+cd15_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_cd15'
+pax5_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_pax5'
+pd1_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\registered_pd1'
 
-# Output directories for normalized images and final RGB images
-output_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\RGB_Mihc'
+# Output directory for concatenated images
+output_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_2nd_reg\multi_channel_images'
 os.makedirs(output_dir, exist_ok=True)
-
-norm_red_dir = os.path.join(output_dir, 'normalized_channel_5')
-norm_green_dir = os.path.join(output_dir, 'normalized_channel_9')
-norm_blue_dir = os.path.join(output_dir, 'normalized_channel_1')
-
-os.makedirs(norm_red_dir, exist_ok=True)
-os.makedirs(norm_green_dir, exist_ok=True)
-os.makedirs(norm_blue_dir, exist_ok=True)
 
 # Function to extract the common prefix from the filename
 def extract_prefix(filename):
@@ -46,52 +44,66 @@ def normalize_image(image, lower_percentile=0, upper_percentile=100):
 
     return normalized_image
 
-
-# Function to standardize, save, and stack images into an RGB TIFF
-def stack_channels_to_rgb(red_dir, green_dir, blue_dir, norm_red_dir, norm_green_dir, norm_blue_dir, output_dir):
-    # Assuming all three folders contain corresponding images for the same prefixes
-    for file_name in os.listdir(red_dir):
+# Function to load, normalize, and concatenate channels into a multi-channel image and save as TIFF
+def concatenate_channels_to_multichannel_image(dapi_dir, cd20_dir, cd4_dir, bcl2_dir, irf4_dir, cd15_dir, pax5_dir, pd1_dir, output_dir):
+    # Assuming all folders contain corresponding images for the same prefixes
+    for file_name in os.listdir(dapi_dir):
         if file_name.endswith('.tif') or file_name.endswith('.tiff'):
             # Extract the common prefix from the filename
             prefix = extract_prefix(file_name)
             if not prefix:
                 continue
 
-            # Construct the corresponding filenames in the other folders
-            red_image_path = os.path.join(red_dir, file_name)
-            green_image_path = os.path.join(green_dir, f"{prefix}_channel_9.tif")
-            blue_image_path = os.path.join(blue_dir, f"{prefix}_channel_1.tif")
+            # Construct the corresponding filenames in each directory
+            dapi_image_path = os.path.join(dapi_dir, file_name)
+            cd20_image_path = os.path.join(cd20_dir, f"{prefix}_channel_2.tif")
+            cd4_image_path = os.path.join(cd4_dir, f"{prefix}_channel_4.tif")
+            bcl2_image_path = os.path.join(bcl2_dir, f"{prefix}_channel_5.tif")
+            irf4_image_path = os.path.join(irf4_dir, f"{prefix}_channel_6.tif")
+            cd15_image_path = os.path.join(cd15_dir, f"{prefix}_channel_7.tif")
+            pax5_image_path = os.path.join(pax5_dir, f"{prefix}_channel_9.tif")
+            pd1_image_path = os.path.join(pd1_dir, f"{prefix}_channel_10.tif")
 
             # Check if all corresponding files exist
-            if not (os.path.exists(green_image_path) and os.path.exists(blue_image_path)):
+            if not (os.path.exists(cd20_image_path) and os.path.exists(cd4_image_path) and
+                    os.path.exists(bcl2_image_path) and os.path.exists(irf4_image_path) and
+                    os.path.exists(cd15_image_path) and os.path.exists(pax5_image_path) and
+                    os.path.exists(pd1_image_path)):
                 print(f"Skipping {prefix}: Corresponding files not found in all channels.")
                 continue
 
-            # Load the red, green, and blue channel images
-            red_image = Image.open(red_image_path)
-            green_image = Image.open(green_image_path)
-            blue_image = Image.open(blue_image_path)
+            # Load and normalize each channel image
+            dapi_image = normalize_image(Image.open(dapi_image_path))
+            cd20_image = normalize_image(Image.open(cd20_image_path))
+            cd4_image = normalize_image(Image.open(cd4_image_path))
+            bcl2_image = normalize_image(Image.open(bcl2_image_path))
+            irf4_image = normalize_image(Image.open(irf4_image_path))
+            cd15_image = normalize_image(Image.open(cd15_image_path))
+            pax5_image = normalize_image(Image.open(pax5_image_path))
+            pd1_image = normalize_image(Image.open(pd1_image_path))
 
-            # Normalize the images using contrast stretching
-            norm_red_image = normalize_image(red_image)
-            norm_green_image = normalize_image(green_image)
-            norm_blue_image = normalize_image(blue_image)
+            # Convert all images to numpy arrays
+            dapi_array = np.array(dapi_image)
+            cd20_array = np.array(cd20_image)
+            cd4_array = np.array(cd4_image)
+            bcl2_array = np.array(bcl2_image)
+            irf4_array = np.array(irf4_image)
+            cd15_array = np.array(cd15_image)
+            pax5_array = np.array(pax5_image)
+            pd1_array = np.array(pd1_image)
 
-            # Save the normalized images
-            norm_red_image.save(os.path.join(norm_red_dir, file_name))
-            norm_green_image.save(os.path.join(norm_green_dir, f"{prefix}_channel_9.tif"))
-            norm_blue_image.save(os.path.join(norm_blue_dir, f"{prefix}_channel_1.tif"))
+            # Stack them along the last axis to create a multi-channel image
+            multi_channel_image = np.stack([cd20_array, cd4_array, dapi_array,
+                                            bcl2_array, irf4_array, cd15_array,
+                                            pax5_array], axis=-1)
 
-            # Stack the normalized channels into an RGB image
-            rgb_image = Image.merge("RGB", (norm_red_image, norm_green_image, norm_blue_image))
-
-            # Save the RGB image with a new organized filename
-            output_file_name = f"{prefix}_rgb.tif"
+            # Save the multi-channel image as a TIFF file
+            output_file_name = f"{prefix}.tif"
             output_file_path = os.path.join(output_dir, output_file_name)
-            rgb_image.save(output_file_path)
+            tiff.imwrite(output_file_path, multi_channel_image, photometric='rgb')
             print(f"Saved {output_file_path}")
 
-# Run the normalization and stacking process
-stack_channels_to_rgb(red_channel_dir, green_channel_dir, blue_channel_dir, norm_red_dir, norm_green_dir, norm_blue_dir, output_dir)
+# Run the normalization and concatenation process
+concatenate_channels_to_multichannel_image(dapi_dir, cd20_dir, cd4_dir, bcl2_dir, irf4_dir, cd15_dir, pax5_dir, pd1_dir, output_dir)
 
-print("Normalization and RGB stacking complete.")
+print("Normalization and multi-channel image concatenation complete.")

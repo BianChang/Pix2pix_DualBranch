@@ -89,7 +89,7 @@ def perform_registration(fixed_image, moving_image, transform_type="affine", bsp
     # Set up the registration
     registration_method = sitk.ImageRegistrationMethod()
     registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=80)
-    registration_method.SetOptimizerAsRegularStepGradientDescent(learningRate=0.01,
+    registration_method.SetOptimizerAsRegularStepGradientDescent(learningRate=0.005,
                                                                  minStep=1e-5,
                                                                  numberOfIterations=100)
     registration_method.SetInterpolator(sitk.sitkLinear)
