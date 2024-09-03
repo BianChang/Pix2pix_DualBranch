@@ -49,27 +49,24 @@ def concatenate_channels_to_multichannel_image(dapi_dir, cd20_dir, cd4_dir, bcl2
     # Assuming all folders contain corresponding images for the same prefixes
     for file_name in os.listdir(dapi_dir):
         if file_name.endswith('.tif') or file_name.endswith('.tiff'):
-            # Extract the common prefix from the filename
-            prefix = extract_prefix(file_name)
-            if not prefix:
-                continue
+            print(file_name)
 
             # Construct the corresponding filenames in each directory
             dapi_image_path = os.path.join(dapi_dir, file_name)
-            cd20_image_path = os.path.join(cd20_dir, f"{prefix}_channel_2.tif")
-            cd4_image_path = os.path.join(cd4_dir, f"{prefix}_channel_4.tif")
-            bcl2_image_path = os.path.join(bcl2_dir, f"{prefix}_channel_5.tif")
-            irf4_image_path = os.path.join(irf4_dir, f"{prefix}_channel_6.tif")
-            cd15_image_path = os.path.join(cd15_dir, f"{prefix}_channel_7.tif")
-            pax5_image_path = os.path.join(pax5_dir, f"{prefix}_channel_9.tif")
-            pd1_image_path = os.path.join(pd1_dir, f"{prefix}_channel_10.tif")
+            cd20_image_path = os.path.join(cd20_dir, file_name)
+            cd4_image_path = os.path.join(cd4_dir, file_name)
+            bcl2_image_path = os.path.join(bcl2_dir, file_name)
+            irf4_image_path = os.path.join(irf4_dir, file_name)
+            cd15_image_path = os.path.join(cd15_dir, file_name)
+            pax5_image_path = os.path.join(pax5_dir, file_name)
+            pd1_image_path = os.path.join(pd1_dir, file_name)
 
             # Check if all corresponding files exist
             if not (os.path.exists(cd20_image_path) and os.path.exists(cd4_image_path) and
                     os.path.exists(bcl2_image_path) and os.path.exists(irf4_image_path) and
                     os.path.exists(cd15_image_path) and os.path.exists(pax5_image_path) and
                     os.path.exists(pd1_image_path)):
-                print(f"Skipping {prefix}: Corresponding files not found in all channels.")
+                print(f"Skipping {file_name}: Corresponding files not found in all channels.")
                 continue
 
             # Load and normalize each channel image
@@ -98,7 +95,7 @@ def concatenate_channels_to_multichannel_image(dapi_dir, cd20_dir, cd4_dir, bcl2
                                             pax5_array], axis=-1)
 
             # Save the multi-channel image as a TIFF file
-            output_file_name = f"{prefix}.tif"
+            output_file_name = file_name
             output_file_path = os.path.join(output_dir, output_file_name)
             tiff.imwrite(output_file_path, multi_channel_image, photometric='rgb')
             print(f"Saved {output_file_path}")

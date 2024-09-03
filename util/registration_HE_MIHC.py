@@ -123,8 +123,8 @@ for he_file in os.listdir(hema_path):
         # Set up the registration
         print('Set up the registration')
         registration_method = sitk.ImageRegistrationMethod()
-        registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=55)
-        registration_method.SetOptimizerAsRegularStepGradientDescent(learningRate=0.3,
+        registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=60)
+        registration_method.SetOptimizerAsRegularStepGradientDescent(learningRate=0.5,
                                                                      minStep=1e-4,
                                                                      numberOfIterations=30)
         registration_method.SetInterpolator(sitk.sitkLinear)
@@ -218,7 +218,7 @@ for he_file in os.listdir(hema_path):
             # Set the metric as Mattes Mutual Information
             registration_method_non_rigid.SetMetricAsMattesMutualInformation(numberOfHistogramBins=75)
 
-            registration_method_non_rigid.SetOptimizerAsRegularStepGradientDescent(learningRate=0.01,
+            registration_method_non_rigid.SetOptimizerAsRegularStepGradientDescent(learningRate=0.05,
                                                                                        minStep=1e-6,
                                                                                        numberOfIterations=100)
 

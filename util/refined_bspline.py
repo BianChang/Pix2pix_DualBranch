@@ -1,7 +1,5 @@
 import os
 import SimpleITK as sitk
-import matplotlib.pyplot as plt
-from matplotlib.widgets import RectangleSelector
 
 # Define the paths
 hema_path = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_first_reg\HE_gray'
@@ -30,41 +28,14 @@ output_paths = [he_output_path, dapi_output_path, cd20_output_path, cd4_output_p
 for path in output_paths:
     os.makedirs(path, exist_ok=True)
 
-# Define the iteration callback function
-def command_iteration(method):
-    print(f"Iteration: {method.GetOptimizerIteration()}")
-    print(f"Metric Value: {method.GetMetricValue()}")
 
 # Function to extract the common prefix from the filename
 def extract_prefix(filename):
     return filename.split('.')[0].replace('final_HE_', '')
 
-# Function to perform affine registration
-def affine_registration(fixed_image, moving_image):
-    print("Performing affine registration")
-    initial_transform = sitk.CenteredTransformInitializer(
-        fixed_image,
-        moving_image,
-        sitk.AffineTransform(2),
-        sitk.CenteredTransformInitializerFilter.GEOMETRY)
-
-    registration_method = sitk.ImageRegistrationMethod()
-    registration_method.SetMetricAsMattesMutualInformation(numberOfHistogramBins=150)
-    registration_method.SetOptimizerAsRegularStepGradientDescent(
-        learningRate=0.1,
-        minStep=1e-4,
-        numberOfIterations=100)
-    registration_method.SetInterpolator(sitk.sitkLinear)
-    registration_method.SetInitialTransform(initial_transform, inPlace=False)
-    registration_method.AddCommand(sitk.sitkIterationEvent, lambda: command_iteration(registration_method))
-
-    final_transform = registration_method.Execute(fixed_image, moving_image)
-    print(f"Final metric value: {registration_method.GetMetricValue()}")
-    print(f"Optimizer converged: {registration_method.GetOptimizerConvergenceValue()}")
-    return final_transform
 
 # Function to perform B-spline registration
-def bspline_registration(fixed_image, moving_image, bspline_grid_size):
+def bspline_registration(fixed_image, moving_image, bspline_grid_size=[8, 8]):
     print("Performing B-spline registration")
     initial_transform = sitk.BSplineTransformInitializer(fixed_image, bspline_grid_size)
 
@@ -73,9 +44,14 @@ def bspline_registration(fixed_image, moving_image, bspline_grid_size):
     registration_method.SetOptimizerAsRegularStepGradientDescent(
         learningRate=0.01,
         minStep=1e-4,
-        numberOfIterations=100)
+        numberOfIterations=20)
     registration_method.SetInterpolator(sitk.sitkLinear)
     registration_method.SetInitialTransform(initial_transform, inPlace=False)
+
+    def command_iteration(method):
+        print(f"Iteration: {method.GetOptimizerIteration()}")
+        print(f"Metric Value: {method.GetMetricValue()}")
+
     registration_method.AddCommand(sitk.sitkIterationEvent, lambda: command_iteration(registration_method))
 
     final_transform = registration_method.Execute(fixed_image, moving_image)
@@ -83,38 +59,17 @@ def bspline_registration(fixed_image, moving_image, bspline_grid_size):
     print(f"Optimizer converged: {registration_method.GetOptimizerConvergenceValue()}")
     return final_transform
 
-# Function to perform demons registration
-def demons_registration(fixed_image, moving_image):
-    print("Performing demons registration")
-    demons_filter = sitk.DiffeomorphicDemonsRegistrationFilter()
-    demons_filter.SetNumberOfIterations(50)
-    demons_filter.SetStandardDeviations(1.0)
 
-    displacement_field = demons_filter.Execute(fixed_image, moving_image)
-    final_transform = sitk.DisplacementFieldTransform(displacement_field)
-
-    print(f"Final demons metric value: {demons_filter.GetMetric()}")
-    return final_transform
-
-# Function to perform the appropriate registration based on the method selected
-def perform_registration(fixed_image, moving_image, transform_type="affine", bspline_grid_size=[4, 4]):
-    fixed_image_float32 = sitk.Cast(fixed_image, sitk.sitkFloat32)
-    moving_image_float32 = sitk.Cast(moving_image, sitk.sitkFloat32)
-
-    if transform_type == "affine":
-        return affine_registration(fixed_image_float32, moving_image_float32)
-    elif transform_type == "bspline":
-        return bspline_registration(fixed_image_float32, moving_image_float32, bspline_grid_size)
-    elif transform_type == "demons":
-        return demons_registration(fixed_image_float32, moving_image_float32)
-    else:
-        raise ValueError(f"Unknown transform type: {transform_type}")
-
-# Function to apply the transform and save the output
+# Function to apply the transform, convert to uint8, and save the image
 def apply_transform_and_save(image_path, output_path, transform, fixed_image):
     image = sitk.ReadImage(image_path, sitk.sitkUInt8)
     transformed_image = sitk.Resample(image, fixed_image, transform, sitk.sitkLinear, 0.0, image.GetPixelIDValue())
-    sitk.WriteImage(transformed_image, output_path)
+
+    # Convert back to uint8 after registration
+    transformed_image_uint8 = sitk.Cast(sitk.RescaleIntensity(transformed_image), sitk.sitkUInt8)
+
+    sitk.WriteImage(transformed_image_uint8, output_path)
+
 
 # Perform registration and apply the transform to all images
 for he_file in os.listdir(hema_path):
@@ -144,26 +99,30 @@ for he_file in os.listdir(hema_path):
         # Read the images as uint8
         print(f'Reading images for {he_file}')
         fixed_image = sitk.ReadImage(hema_image_path, sitk.sitkUInt8)
-        fixed_image = sitk.InvertIntensity(fixed_image, maximum=255)
-        moving_image = sitk.ReadImage(dapi_image_path, sitk.sitkUInt8)
+        fixed_image = sitk.Cast(sitk.InvertIntensity(fixed_image, maximum=255), sitk.sitkFloat32)
+        moving_image = sitk.Cast(sitk.ReadImage(dapi_image_path, sitk.sitkUInt8), sitk.sitkFloat32)
         he_image = sitk.ReadImage(he_image_path, sitk.sitkVectorUInt8)
 
-        # Choose the type of registration (affine, bspline, demons)
-        transform_type = "demons"  # Change this to "bspline" or "demons" as needed
-        bspline_grid_size = [4, 4]  # Set the B-spline grid size if using B-spline
-
-        # Perform the registration
-        final_transform = perform_registration(fixed_image, moving_image, transform_type, bspline_grid_size)
+        # Perform the B-spline registration
+        final_transform = bspline_registration(fixed_image, moving_image)
 
         # Apply the transformation to the DAPI, CD20, CD4, BCL2, IRF4, CD15, PAX5, and PD1 images
-        apply_transform_and_save(dapi_image_path, os.path.join(dapi_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(cd20_image_path, os.path.join(cd20_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(cd4_image_path, os.path.join(cd4_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(bcl2_image_path, os.path.join(bcl2_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(irf4_image_path, os.path.join(irf4_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(cd15_image_path, os.path.join(cd15_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(pax5_image_path, os.path.join(pax5_output_path, f"{prefix}.tif"), final_transform, fixed_image)
-        apply_transform_and_save(pd1_image_path, os.path.join(pd1_output_path, f"{prefix}.tif"), final_transform, fixed_image)
+        apply_transform_and_save(dapi_image_path, os.path.join(dapi_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(cd20_image_path, os.path.join(cd20_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(cd4_image_path, os.path.join(cd4_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(bcl2_image_path, os.path.join(bcl2_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(irf4_image_path, os.path.join(irf4_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(cd15_image_path, os.path.join(cd15_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(pax5_image_path, os.path.join(pax5_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
+        apply_transform_and_save(pd1_image_path, os.path.join(pd1_output_path, f"{prefix}.tif"), final_transform,
+                                 fixed_image)
 
         # Save the HE image (unaltered)
         sitk.WriteImage(he_image, os.path.join(he_output_path, f"{prefix}.tif"))
