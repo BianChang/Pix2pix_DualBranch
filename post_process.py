@@ -182,28 +182,26 @@ def compute_panck_ssim(directory_name):
     f.close()
 
 def validation_train(real_mihc, fake_mihc):
-    real_mihc  = (real_mihc + 1.0) / 2.0
+    # Normalize the values between 0 and 1
+    real_mihc = (real_mihc + 1.0) / 2.0
     fake_mihc = (fake_mihc + 1.0) / 2.0
 
+    # Convert tensors to NumPy arrays and scale to [0, 255] range
     real_mihc = (real_mihc.cpu().detach().numpy() * 255).astype(np.uint8)
     fake_mihc = (fake_mihc.cpu().detach().numpy() * 255).astype(np.uint8)
 
-    real_mihc = np.squeeze(real_mihc).transpose([2, 1, 0])
-    fake_mihc = np.squeeze(fake_mihc).transpose([2, 1, 0])
+    # Squeeze out unnecessary dimensions and ensure channel dimension is handled
+    real_mihc = np.squeeze(real_mihc)
+    fake_mihc = np.squeeze(fake_mihc)
 
-    real_dapi = real_mihc[:, :, 0]
-    real_cd3 = real_mihc[:, :, 1]
-    real_panck = real_mihc[:, :, 2]
+    # Since you now have only one channel, just compare the entire images directly
+    real_channel = real_mihc
+    fake_channel = fake_mihc
 
-    fake_dapi = fake_mihc[:, :, 0]
-    fake_cd3 = fake_mihc[:, :, 1]
-    fake_panck = fake_mihc[:, :, 2]
+    # Calculate SSIM (Structural Similarity Index) for the single channel
+    channel_score = ssim(real_channel, fake_channel, data_range=255)
 
-    dapi_score = ssim(real_dapi, fake_dapi, data_range=255, multichannel=True)
-    cd3_score = ssim(real_cd3, fake_cd3, data_range=255, multichannel=True)
-    panck_score = ssim(real_panck, fake_panck, data_range=255, multichannel=True)
-    average_score = np.average([dapi_score, cd3_score, panck_score])
-    return dapi_score, cd3_score, panck_score, average_score
+    return channel_score
 
 if __name__=='__main__':
 

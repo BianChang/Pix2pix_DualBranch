@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     f = open('./checkpoints/' + '%s/' % opt.name + 'validation_train.csv', 'w', encoding='utf-8', newline='') # record validation result
     csv_writer = csv.writer(f)
-    csv_writer.writerow(['epoch', 'dapi', 'bcl2', 'pax5', 'average'])
+    csv_writer.writerow(['epoch', 'marker'])
 
     for epoch in range(opt.epoch_count, opt.n_epochs + opt.n_epochs_decay + 1):    # outer loop for different epochs; we save the model by <epoch_count>, <epoch_count>+<save_latest_freq>
         epoch_start_time = time.time()  # timer for entire epoch
@@ -115,10 +115,7 @@ if __name__ == '__main__':
             model.save_networks(epoch)
 
         if epoch % opt.val_freq == 0:  #run validation on the validation set
-            dapi = 0
-            cd3 = 0
-            panck = 0
-            average = 0
+            marker = 0
             with torch.no_grad():
                 for i, data_val in tqdm(enumerate(dataset_val), total=len(dataset_val), desc="Validating Epoch %d" % epoch):
                     print('VALIDATION')
@@ -129,11 +126,8 @@ if __name__ == '__main__':
                     maskpred = net(imgs)
                     #maskpred = maskpred.cpu().numpy()
                     #truemasks = truemasks.cpu().numpy()
-                    dapi_score, cd3_score, panck_score, average_score = validation_train(truemasks, maskpred)
-                    dapi += dapi_score
-                    cd3 += cd3_score
-                    panck += panck_score
-                    average += average_score
-                csv_writer.writerow([epoch, dapi/n_val, cd3/n_val, panck/n_val, average/n_val])
+                    score = validation_train(truemasks, maskpred)
+                    marker += score
+                csv_writer.writerow([epoch, marker/n_val])
         print('End of epoch %d / %d \t Time Taken: %d sec' % (epoch, opt.n_epochs + opt.n_epochs_decay, time.time() - epoch_start_time))
     f.close()
