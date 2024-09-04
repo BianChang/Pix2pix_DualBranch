@@ -200,7 +200,7 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
         config = {
             "model_params": {
                 "input_nc": 3,
-                "output_nc": 3,
+                "output_nc": 1,
                 "img_size": [512, 512],
                 "patch_size": 16,
                 "window_size": 32,
