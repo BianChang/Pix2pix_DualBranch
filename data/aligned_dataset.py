@@ -30,7 +30,7 @@ class AlignedDataset(BaseDataset):
         #self.transform_A = get_transform(self.opt, grayscale=(input_nc == 1))
         #self.transform_B = get_transform(self.opt, grayscale=(output_nc == 1))
         self.transform_A = get_transformA(self.opt, grayscale=0)
-        self.transform_B = get_transformB(self.opt, grayscale=0)
+        self.transform_B = get_transformB(self.opt, grayscale=True)
 
     def __getitem__(self, index):
         """Return a data point and its metadata information.
