@@ -4,11 +4,11 @@ import tifffile as tiff
 import numpy as np
 
 # Directory containing multi-channel TIFF images
-input_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_mIHC'  # Change this to your folder path
-output_dir = os.path.join(input_dir, 'processed_images')
+#input_dir = r'D:\Chang_files\workspace\Qupath_proj\hdk_codex\run6_mIHC'  # Change this to your folder path
+#output_dir = os.path.join(input_dir, 'processed_images')
 
 # Create the output directory if it doesn't exist
-os.makedirs(output_dir, exist_ok=True)
+#os.makedirs(output_dir, exist_ok=True)
 
 # Function to process (rotate, flip) TIFF image and save the transformed image and its channels
 def process_tiff(file_path, output_base_dir):
@@ -66,10 +66,48 @@ def process_tiff(file_path, output_base_dir):
         else:
             print(f"Skipping {file_path}, not a multi-channel image.")
 
+
+def split_tiff_channels(input_folder, output_dir, channels):
+    # Ensure each channel has its corresponding folder
+    for channel in channels:
+        channel_folder = os.path.join(output_dir, channel)
+        if not os.path.exists(channel_folder):
+            os.makedirs(channel_folder)
+
+    # Loop over each file in the input folder
+    for file_name in os.listdir(input_folder):
+        file_path = os.path.join(input_folder, file_name)
+
+        # Check if the file is a TIFF file
+        if os.path.isfile(file_path) and file_name.endswith(('.tif', '.tiff')):
+            print(f'Processing file: {file_name}')
+
+            # Load the TIFF image
+            image = tiff.imread(file_path)
+
+            # Check if the number of channels matches the expected count
+            if image.shape[2] != len(channels):
+                print(f'Warning: {file_name} does not have the expected {len(channels)} channels. Skipping...')
+                continue
+
+            # Split and save each channel into the appropriate folder
+            for i, channel in enumerate(channels):
+                channel_image = image[:, :, i]  # Extract the ith channel
+                channel_file_name = f'{file_name}'
+                channel_file_path = os.path.join(output_dir, channel, channel_file_name)
+                tiff.imwrite(channel_file_path, channel_image)
+                print(f'Saved {channel} channel to: {channel_file_path}')
+'''
 # Process each TIFF file in the directory
 for file_name in os.listdir(input_dir):
     if file_name.endswith('.tif') or file_name.endswith('.tiff'):
         file_path = os.path.join(input_dir, file_name)
         process_tiff(file_path, output_dir)
+'''
 
+# Define the channels in the specific order
+channels = ['cd20', 'cd4', 'dapi', 'bcl2', 'irf4', 'cd15', 'pax5']
+input_dir = fr'D:\Chang_files\workspace\data\HL_Codex\7-channel-5slides\testB'
+output_dir = fr'D:\Chang_files\workspace\data\HL_Codex\7-channel-5slides'
+split_tiff_channels(input_dir, output_dir, channels)
 print("Processing complete.")
