@@ -89,7 +89,7 @@ def compute_metrics(directory_name):
                 fake_channel[0, 0] += tiny
 
                 # Compute SSIM
-                ssim_score = ssim(real_channel, fake_channel, data_range=real_channel.max() - real_channel.min())
+                ssim_score = ssim(real_channel, fake_channel, data_range=255)
 
                 # Compute Pearson correlation coefficient
                 pearson_corr = np.corrcoef(real_channel.flatten(), fake_channel.flatten())[0, 1]
