@@ -67,11 +67,6 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_w
     for label, im_data in visuals.items():
         #im_data = denormalize(im_data)
         im = util.tensor2im(im_data)
-
-        # Check if the image is 1-channel and handle it as grayscale
-        if im.shape[2] == 1:  # 1-channel image
-            im = im[:, :, 0]  # Remove the channel dimension for grayscale images
-
         image_name = '%s_%s.tif' % (name, label)
         save_path = os.path.join(image_dir, image_name)
         util.save_image(im, save_path, aspect_ratio=aspect_ratio)
