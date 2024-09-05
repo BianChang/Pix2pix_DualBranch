@@ -7,6 +7,8 @@ from . import util, html_utils
 from subprocess import Popen, PIPE
 import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline
+import tifffile as tiff
+
 
 import wandb
 
@@ -49,13 +51,9 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_w
     if use_wandb:
         wandb.log(ims_dict)
 '''
+
 def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_wandb=False):
-    """Save images to the disk."""
-    def denormalize(tensor):
-        """
-        Denormalize a given tensor from [-1,1] to [0,1]
-        """
-        return (tensor + 1) / 2
+    """Save images to the disk using tifffile with intensity scaling to [0, 255]."""
 
     image_dir = webpage.get_image_dir()
     short_path = ntpath.basename(image_path[0])
@@ -64,21 +62,44 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256, use_w
     webpage.add_header(name)
     ims, txts, links = [], [], []
     ims_dict = {}
+
     for label, im_data in visuals.items():
-        #im_data = denormalize(im_data)
-        im = util.tensor2im(im_data)
-        image_name = '%s_%s.tif' % (name, label)
+        # Convert tensor to numpy array and move it to CPU
+        im = im_data.cpu().detach().numpy()
+
+        # Handle potential batch dimension or channel handling
+        if len(im.shape) == 4:  # [batch_size, channels, height, width]
+            im = im[0]  # Take the first image in the batch
+
+        if im.shape[0] == 1:  # Grayscale image (1-channel)
+            im = np.squeeze(im)  # Remove the channel dimension
+        elif im.shape[0] == 3:  # RGB image (3-channel)
+            im = np.transpose(im, (1, 2, 0))  # Transpose to [height, width, channels]
+
+        # Normalize image to [0, 255] from [-1, 1]
+        im = (im + 1) / 2.0 * 255.0
+        im = np.clip(im, 0, 255)  # Ensure all values are within [0, 255]
+
+        # Convert to uint8
+        im = im.astype(np.uint8)
+
+        image_name = f'{name}_{label}.tif'
         save_path = os.path.join(image_dir, image_name)
-        util.save_image(im, save_path, aspect_ratio=aspect_ratio)
+
+        # Save the image using tifffile
+        tiff.imwrite(save_path, im)
+
         ims.append(image_name)
         txts.append(label)
         links.append(image_name)
+
         if use_wandb:
             ims_dict[label] = wandb.Image(im)
+
     webpage.add_images(ims, txts, links, width=width)
+
     if use_wandb:
         wandb.log(ims_dict)
-
 
 
 class Visualizer():
