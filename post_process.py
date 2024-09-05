@@ -87,6 +87,7 @@ def compute_metrics(directory_name):
                 tiny = 1e-15  # tiny constant to avoid numerical issues
                 real_channel[0, 0] += tiny
                 fake_channel[0, 0] += tiny
+                print(f"Real image size: {real_channel.shape}, Fake image size: {fake_channel.shape}")
 
                 # Compute SSIM
                 ssim_score = ssim(real_channel, fake_channel, data_range=255)
