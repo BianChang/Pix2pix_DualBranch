@@ -68,9 +68,7 @@ def compute_metrics(directory_name):
     with open(csv_path, 'w', encoding='utf-8', newline='') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow([
-            'file_name', 'pax5_ssim', 'bcl2_ssim', 'dapi_ssim', 'average_ssim',
-            'pax5_pearson', 'bcl2_pearson', 'dapi_pearson', 'average_pearson',
-            'pax5_psnr', 'bcl2_psnr', 'dapi_psnr', 'average_psnr'
+            'file_name', 'ssim', 'pearson', 'psnr'
         ])
 
         for filename in os.listdir(directory_name):
@@ -82,44 +80,28 @@ def compute_metrics(directory_name):
                 real_image_path = os.path.join(directory_name, real_image_name)
                 real_image = imread(real_image_path)
 
-                # Extract channels
-                channels = ['dapi', 'cd3', 'panck']
-                ssim_scores = []
-                pearson_correlations = []
-                psnr_scores = []
+                # Ensure images are 1-channel (grayscale)
+                real_channel = real_image.astype(float)
+                fake_channel = fake_image.astype(float)
+
                 tiny = 1e-15  # tiny constant to avoid numerical issues
+                real_channel[0, 0] += tiny
+                fake_channel[0, 0] += tiny
 
-                for i, channel in enumerate(channels):
-                    real_channel = real_image[:, :, i].astype(float)
-                    fake_channel = fake_image[:, :, i].astype(float)
+                # Compute SSIM
+                ssim_score = ssim(real_channel, fake_channel, data_range=real_channel.max() - real_channel.min())
 
-                    # Adding tiny value to avoid zero values which can affect correlation computation
-                    real_channel[0, 0] += tiny
-                    fake_channel[0, 0] += tiny
+                # Compute Pearson correlation coefficient
+                pearson_corr = np.corrcoef(real_channel.flatten(), fake_channel.flatten())[0, 1]
 
-                    # Compute SSIM
-                    ssim_score = ssim(real_channel, fake_channel, data_range=real_channel.max() - real_channel.min())
-                    ssim_scores.append(ssim_score)
-
-                    # Compute Pearson correlation coefficient
-                    pearson_corr = np.corrcoef(real_channel.flatten(), fake_channel.flatten())[0, 1]
-                    pearson_correlations.append(pearson_corr)
-
-                    # Compute PSNR
-                    psnr_score = peak_signal_noise_ratio(real_channel, fake_channel)
-                    psnr_scores.append(psnr_score)
-
-                # Calculate averages
-                average_ssim = np.mean(ssim_scores)
-                average_pearson = np.mean(pearson_correlations)
-                average_psnr = np.mean(psnr_scores)
+                # Compute PSNR
+                psnr_score = peak_signal_noise_ratio(real_channel, fake_channel)
 
                 # Write results to CSV
                 csv_writer.writerow([
-                    base_name, *ssim_scores, average_ssim,
-                    *pearson_correlations, average_pearson,
-                    *psnr_scores, average_psnr
+                    base_name, ssim_score, pearson_corr, psnr_score
                 ])
+
 
 
 def compute_dapi_ssim(directory_name):
