@@ -68,9 +68,9 @@ def compute_metrics(directory_name):
     with open(csv_path, 'w', encoding='utf-8', newline='') as file:
         csv_writer = csv.writer(file)
         csv_writer.writerow([
-            'file_name', 'dapi_ssim', 'cd3_ssim', 'panck_ssim', 'average_ssim',
-            'dapi_pearson', 'cd3_pearson', 'panck_pearson', 'average_pearson',
-            'dapi_psnr', 'cd3_psnr', 'panck_psnr', 'average_psnr'
+            'file_name', 'ch1_ssim', 'ch2_ssim', 'ch3_ssim', 'average_ssim',
+            'ch1_pearson', 'ch2_pearson', 'ch3_pearson', 'average_pearson',
+            'ch1_psnr', 'ch2_psnr', 'ch3_psnr', 'average_psnr'
         ])
 
         for filename in os.listdir(directory_name):
