@@ -78,7 +78,7 @@ def compute_metrics(directory_name):
                 path_to_file = os.path.join(directory_name, filename)
                 fake_image = imread(path_to_file)
                 base_name = filename[:-11]
-                real_image_name = base_name + 'real_B.tif'
+                real_image_name = base_name + '_real_B.tif'
                 real_image_path = os.path.join(directory_name, real_image_name)
                 real_image = imread(real_image_path)
 
