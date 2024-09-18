@@ -4,12 +4,24 @@ import torch.nn as nn
 from PIL import Image
 import torchvision.transforms as transforms
 from models.networks import define_D, GANLoss
+from data.base_dataset import BaseDataset, get_params, get_transformA, get_transformB
 
 # Helper function to load and preprocess single-channel images
-def load_image(image_path, transform):
-    image = Image.open(image_path).convert('L')  # Convert to grayscale (single channel)
+def load_image(image_path, is_A=True, params=None):
+    # Load the image using PIL without changing the number of channels
+    image = Image.open(image_path)
+
+    if is_A:
+        # Get transform parameters and apply transform specific for A images
+        transform = get_transformA(params, grayscale=False)
+    else:
+        # Get transform parameters and apply transform specific for B images
+        transform = get_transformB(params, grayscale=True)
+
+    # Apply the transformations to the image
     image = transform(image)
-    return image.unsqueeze(0)  # Add batch dimension
+
+    return image.unsqueeze(0)  # Add batch dimension if not already present
 
 # Function to load the discriminator model's weights
 def load_network(net, D_weights, device):
@@ -54,9 +66,9 @@ def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_laye
             print(f"Matching real images not found for {fake_image_name}, skipping...")
             continue
 
-        real_image_A = load_image(real_image_path_A, transform).to(device)
-        real_image_B = load_image(real_image_path_B, transform).to(device)
-        fake_image = load_image(fake_image_path, transform).to(device)
+        real_image_A = load_image(real_image_path_A, is_A=True).to(device)
+        real_image_B = load_image(real_image_path_B, is_A=False).to(device)
+        fake_image = load_image(fake_image_path, is_A=False).to(device)
 
         L1_loss = criterionL1(fake_image, real_image_B) * lambda_L1  # Applying the lambda factor
 
