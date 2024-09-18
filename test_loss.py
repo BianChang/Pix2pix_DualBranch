@@ -22,7 +22,7 @@ def load_network(net, D_weights, device):
 
 # Function to calculate losses
 def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain,
-                     gan_mode, gpu_ids):
+                     gan_mode, gpu_ids, lambda_L1=30):
     device = torch.device('cuda:{}'.format(gpu_ids[0]) if gpu_ids else 'cpu')
     netD = define_D(input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gpu_ids)
     netD = load_network(netD, D_weights, device)
@@ -58,7 +58,7 @@ def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_laye
         real_image_B = load_image(real_image_path_B, transform).to(device)
         fake_image = load_image(fake_image_path, transform).to(device)
 
-        L1_loss = criterionL1(fake_image, real_image_B)
+        L1_loss = criterionL1(fake_image, real_image_B) * lambda_L1  # Applying the lambda factor
 
         # Concatenate real_A and fake_B for discriminator
         input_for_D = torch.cat((real_image_A, fake_image), 1)
