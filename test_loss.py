@@ -88,9 +88,9 @@ def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_laye
 
 if __name__ == '__main__':
     config = {
-        'image_dir': './results/hl_swinTResnet_bcl2_2/test_20/images/',
-        'D_weights': './checkpoints/hl_swinTResnet_bcl2_2/20_net_D.pth',
-        'log_path': './results/hl_swinTResnet_bcl2_2/test_20/loss_log_test.txt',
+        'image_dir': './results/hl_swinTResnet_pax5_2/test_15/images/',
+        'D_weights': './checkpoints/hl_swinTResnet_pax5_2/15_net_D.pth',
+        'log_path': './results/hl_swinTResnet_pax5_2/test_15/loss_log_test.txt',
         'input_nc': 4,
         'ndf': 64,
         'netD': 'basic',
