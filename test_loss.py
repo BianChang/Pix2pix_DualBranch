@@ -2,9 +2,9 @@ import os
 import torch
 import torch.nn as nn
 from PIL import Image
-import numpy as np
 import torchvision.transforms as transforms
 from models.networks import define_D, GANLoss
+
 
 # Helper function to load and preprocess single-channel images
 def load_image(image_path, transform):
@@ -12,27 +12,32 @@ def load_image(image_path, transform):
     image = transform(image)
     return image.unsqueeze(0)  # Add batch dimension
 
-def remove_module_prefix(state_dict):
-    """Remove the 'module.' prefix from keys if the model was not wrapped in DataParallel during saving."""
-    new_state_dict = {}
-    for key, value in state_dict.items():
-        if key.startswith("module."):
-            new_key = key[len("module."):]  # remove 'module.' prefix
-        else:
-            new_key = key
-        new_state_dict[new_key] = value
-    return new_state_dict
+
+# Function to load the discriminator model's weights
+def load_network(net, D_weights, device):
+    print(f'Loading the model from {D_weights}')
+
+    # Load state dictionary and map to the correct device
+    state_dict = torch.load(D_weights, map_location=device)
+
+    if isinstance(net, torch.nn.DataParallel):
+        net = net.module
+
+    # Load the state dictionary into the network
+    net.load_state_dict(state_dict)
+
+    return net
+
 
 # Function to calculate losses
-def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gan_mode, gpu_ids):
+def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain,
+                     gan_mode, gpu_ids):
     # Set up the device
     device = torch.device('cuda:{}'.format(gpu_ids[0]) if gpu_ids else 'cpu')
 
     # Load the discriminator model
     netD = define_D(input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gpu_ids)
-    state_dict = torch.load(D_weights)
-    state_dict = remove_module_prefix(state_dict)
-    netD.load_state_dict(torch.load(state_dict))
+    netD = load_network(netD, D_weights, device)
     netD = netD.to(device)
     netD.eval()
 
@@ -93,6 +98,7 @@ def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_laye
 
     print(f"Average L1 Loss: {avg_L1_loss}, Average GAN Loss: {avg_GAN_loss}")
 
+
 if __name__ == '__main__':
     # Define your configuration here:
     config = {
@@ -107,7 +113,7 @@ if __name__ == '__main__':
         'init_type': 'normal',  # Initialization type for the network
         'init_gain': 0.02,  # Initialization gain
         'gan_mode': 'lsgan',  # GAN mode ('lsgan', 'vanilla', etc.)
-        'gpu_ids': [0]  # List of GPU IDs to use
+        'gpu_ids': [0],  # List of GPU IDs to use
     }
 
     # Run the function to calculate losses
