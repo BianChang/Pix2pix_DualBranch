@@ -5,7 +5,6 @@ from PIL import Image
 import numpy as np
 import torchvision.transforms as transforms
 from models.networks import define_D, GANLoss
-from options.test_options import TestOptions
 
 # Helper function to load and preprocess single-channel images
 def load_image(image_path, transform):
@@ -14,18 +13,18 @@ def load_image(image_path, transform):
     return image.unsqueeze(0)  # Add batch dimension
 
 # Function to calculate losses
-def calculate_losses(image_dir, D_weights, log_path, opt):
+def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gan_mode, gpu_ids):
     # Set up the device
-    device = torch.device('cuda:{}'.format(opt.gpu_ids[0]) if opt.gpu_ids else 'cpu')
+    device = torch.device('cuda:{}'.format(gpu_ids[0]) if gpu_ids else 'cpu')
 
     # Load the discriminator model
-    netD = define_D(opt.input_nc, opt.ndf, opt.netD, opt.n_layers_D, opt.norm, opt.init_type, opt.init_gain, opt.gpu_ids)
+    netD = define_D(input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gpu_ids)
     netD.load_state_dict(torch.load(D_weights))
     netD = netD.to(device)
     netD.eval()
 
     # Define loss functions
-    criterionGAN = GANLoss(opt.gan_mode).to(device)
+    criterionGAN = GANLoss(gan_mode).to(device)
     criterionL1 = nn.L1Loss().to(device)
 
     # Set up the image transform (assuming the images are already in the correct size)
@@ -82,12 +81,34 @@ def calculate_losses(image_dir, D_weights, log_path, opt):
     print(f"Average L1 Loss: {avg_L1_loss}, Average GAN Loss: {avg_GAN_loss}")
 
 if __name__ == '__main__':
-    # Parse test options from options/test_options.py
-    opt = TestOptions().parse()  # get test options
+    # Define your configuration here:
+    config = {
+        'image_dir': './results/hl_swinTResnet_dapi_2/test_55/images/',  # Path to your images
+        'D_weights': './checkpoints/hl_swinTResnet_dapi_2/55_net_D.pth',  # Path to your discriminator weights
+        'log_path': './results/hl_swinTResnet_dapi_2/test_55/loss_log_test.txt',  # Path to save the log file
+        'input_nc': 1,  # Number of input channels (1 for grayscale)
+        'ndf': 64,  # Number of filters in the discriminator
+        'netD': 'basic',  # Discriminator type (e.g., 'basic', 'n_layers', etc.)
+        'n_layers_D': 3,  # Number of layers in the discriminator (for 'n_layers' type)
+        'norm': 'batch',  # Normalization type
+        'init_type': 'normal',  # Initialization type for the network
+        'init_gain': 0.02,  # Initialization gain
+        'gan_mode': 'lsgan',  # GAN mode ('lsgan', 'vanilla', etc.)
+        'gpu_ids': [0]  # List of GPU IDs to use
+    }
 
-    # Set log file and directory paths from the command line arguments
-    image_dir = opt.dataroot
-    D_weights = os.path.join(opt.checkpoints_dir, opt.name, f"{opt.epoch}_net_D.pth")
-    log_path = os.path.join(opt.results_dir, opt.name, 'loss_logs.txt')
-
-    calculate_losses(image_dir, D_weights, log_path, opt)
+    # Run the function to calculate losses
+    calculate_losses(
+        config['image_dir'],
+        config['D_weights'],
+        config['log_path'],
+        config['input_nc'],
+        config['ndf'],
+        config['netD'],
+        config['n_layers_D'],
+        config['norm'],
+        config['init_type'],
+        config['init_gain'],
+        config['gan_mode'],
+        config['gpu_ids']
+    )
