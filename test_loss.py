@@ -12,6 +12,17 @@ def load_image(image_path, transform):
     image = transform(image)
     return image.unsqueeze(0)  # Add batch dimension
 
+def remove_module_prefix(state_dict):
+    """Remove the 'module.' prefix from keys if the model was not wrapped in DataParallel during saving."""
+    new_state_dict = {}
+    for key, value in state_dict.items():
+        if key.startswith("module."):
+            new_key = key[len("module."):]  # remove 'module.' prefix
+        else:
+            new_key = key
+        new_state_dict[new_key] = value
+    return new_state_dict
+
 # Function to calculate losses
 def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gan_mode, gpu_ids):
     # Set up the device
@@ -19,7 +30,9 @@ def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_laye
 
     # Load the discriminator model
     netD = define_D(input_nc, ndf, netD, n_layers_D, norm, init_type, init_gain, gpu_ids)
-    netD.load_state_dict(torch.load(D_weights))
+    state_dict = torch.load(D_weights)
+    state_dict = remove_module_prefix(state_dict)
+    netD.load_state_dict(torch.load(state_dict))
     netD = netD.to(device)
     netD.eval()
 
