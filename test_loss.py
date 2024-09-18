@@ -84,7 +84,7 @@ if __name__ == '__main__':
         'image_dir': './results/hl_swinTResnet_dapi_2/test_55/images/',
         'D_weights': './checkpoints/hl_swinTResnet_dapi_2/55_net_D.pth',
         'log_path': './results/hl_swinTResnet_dapi_2/test_55/loss_log_test.txt',
-        'input_nc': 1,
+        'input_nc': 4,
         'ndf': 64,
         'netD': 'basic',
         'n_layers_D': 3,
