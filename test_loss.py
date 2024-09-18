@@ -4,24 +4,24 @@ import torch.nn as nn
 from PIL import Image
 import torchvision.transforms as transforms
 from models.networks import define_D, GANLoss
-from data.base_dataset import BaseDataset, get_params, get_transformA, get_transformB
 
-# Helper function to load and preprocess single-channel images
-def load_image(image_path, is_A=True, params=None):
-    # Load the image using PIL without changing the number of channels
+# Helper function to load and preprocess images
+def load_image(image_path, is_A=True):
     image = Image.open(image_path)
 
+    # Apply appropriate transformations
     if is_A:
-        # Get transform parameters and apply transform specific for A images
-        transform = get_transformA(params, grayscale=False)
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # For 3-channel images
+        ])
     else:
-        # Get transform parameters and apply transform specific for B images
-        transform = get_transformB(params, grayscale=True)
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))  # For 1-channel images
+        ])
 
-    # Apply the transformations to the image
-    image = transform(image)
-
-    return image.unsqueeze(0)  # Add batch dimension if not already present
+    return transform(image).unsqueeze(0)  # Ensure the image has batch dimension
 
 # Function to load the discriminator model's weights
 def load_network(net, D_weights, device):
@@ -43,11 +43,6 @@ def calculate_losses(image_dir, D_weights, log_path, input_nc, ndf, netD, n_laye
 
     criterionGAN = GANLoss(gan_mode).to(device)
     criterionL1 = nn.L1Loss().to(device)
-
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize([0.5], [0.5])  # Normalize to [-1, 1] for single-channel (grayscale)
-    ])
 
     total_L1_loss = 0.0
     total_GAN_loss = 0.0
