@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 from tqdm import tqdm
 import tifffile as tiff
-
+import cv2
 
 def percentile_normalization(image, lower_percentile=0, upper_percentile=99.5):
     """
@@ -31,7 +31,25 @@ def percentile_normalization(image, lower_percentile=0, upper_percentile=99.5):
 
     return Image.fromarray(image_array.astype(np.uint8))
 
+def histogram_equalization(image):
+    """
+    Apply histogram equalization to all channels of the image.
+    Works for both grayscale (1-channel) and RGB (3-channel) images.
+    """
+    # Convert the image to a numpy array
+    image_array = np.array(image)
 
+    # Check if the image is 1-channel (grayscale) or 3-channel (RGB)
+    if len(image_array.shape) == 2:  # Grayscale image
+        # Apply histogram equalization
+        image_array = cv2.equalizeHist(image_array)
+    elif len(image_array.shape) == 3 and image_array.shape[2] == 3:  # RGB image
+        # Apply histogram equalization to each channel separately
+        for i in range(3):
+            image_array[:, :, i] = cv2.equalizeHist(image_array[:, :, i])
+    image_array = image_array.astype(np.uint8)
+
+    return Image.fromarray(image_array)
 
 
 def process_images(folder_path):
@@ -54,8 +72,10 @@ def process_images(folder_path):
         fake_img = Image.open(os.path.join(folder_path, fake_file))
 
         # Apply percentile normalization
-        real_img = percentile_normalization(real_img)
-        fake_img = percentile_normalization(fake_img)
+        #real_img = percentile_normalization(real_img)
+        #fake_img = percentile_normalization(fake_img)
+        real_img = histogram_equalization(real_img)
+        fake_img = histogram_equalization(fake_img)
 
         # Convert images to numpy arrays
         real_data = np.array(real_img)
@@ -208,5 +228,5 @@ def process_images_single(folder_path):
 
 
 # Example usage
-folder_path = r'D:\Chang_files\work_records\swinT\hl_swinTResnet_single\hl_swinTResnet_pax5_2\test_15\images'
-process_images_single(folder_path)
+folder_path = r'D:\Chang_files\work_records\swinT\resnetswinT\images'
+process_images(folder_path)
