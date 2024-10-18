@@ -60,6 +60,10 @@ python post_process.py --srcdir results/hemit_SwinTResnet_New/test_20/
 ```
 This command calculates the evaluation metrics on the generated results and outputs a CSV file for documentation.
 
+### Checkpoints
+
+You can download the checkpoints used to reproduce the results in the paper [here](https://drive.google.com/uc?export=download&id=1rFO_-gMfF_BqeVXHLL4DFT5X3T4n8F1w).
+
 ### Citation
 
 If you use this code or dataset in your research, please cite our work. The paper has been accepted by the 5th International Workshop on Multiscale Multimodal Medical Imaging (MMMI 2024) and The 1st Workshop on Machine Learning for Multimodal/-sensor Healthcare Data (ML4MHD 2024). 
