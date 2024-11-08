@@ -45,7 +45,7 @@ def compute_ssim(directory_name):
         if filename.endswith('_fake_B.tif'):
             fake_mihc = imread(directory_name + "/" + filename)
             nosuff_name = filename[0:-11]
-            real_mihc_name = filename[0:-10]+'real_B.tif'
+            real_mihc_name = filename[0:-10]+'_real_B.tif'
             real_mihc = imread(directory_name + '/' + real_mihc_name)
             real_dapi =real_mihc[:, :, 0]
             real_cd3 = real_mihc[:, :, 1]
@@ -78,7 +78,7 @@ def compute_metrics(directory_name):
                 path_to_file = os.path.join(directory_name, filename)
                 fake_image = imread(path_to_file)
                 base_name = filename[:-11]
-                real_image_name = base_name + 'real_B.tif'
+                real_image_name = base_name + '_real_B.tif'
                 real_image_path = os.path.join(directory_name, real_image_name)
                 real_image = imread(real_image_path)
 
@@ -98,7 +98,7 @@ def compute_metrics(directory_name):
                     fake_channel[0, 0] += tiny
 
                     # Compute SSIM
-                    ssim_score = ssim(real_channel, fake_channel, data_range=real_channel.max() - real_channel.min())
+                    ssim_score = ssim(real_channel, fake_channel, data_range=255)
                     ssim_scores.append(ssim_score)
 
                     # Compute Pearson correlation coefficient
@@ -106,7 +106,7 @@ def compute_metrics(directory_name):
                     pearson_correlations.append(pearson_corr)
 
                     # Compute PSNR
-                    psnr_score = peak_signal_noise_ratio(real_channel, fake_channel)
+                    psnr_score = peak_signal_noise_ratio(real_channel, fake_channel, data_range=255)
                     psnr_scores.append(psnr_score)
 
                 # Calculate averages
@@ -132,7 +132,7 @@ def compute_dapi_ssim(directory_name):
         if filename.endswith('_fake_B.tif'):
             fake_mihc = imread(directory_name + "/" + filename)
             nosuff_name = filename[0:-11]
-            real_mihc_name = filename[0:-10]+'real_B.tif'
+            real_mihc_name = filename[0:-10]+'_real_B.tif'
             #real_mihc_name = filename[0:-11] + '.tif'
             real_mihc = imread(directory_name + '/' + real_mihc_name)
             real_dapi =rgb2gray(real_mihc)
@@ -153,7 +153,7 @@ def compute_cd3_ssim(directory_name):
         if filename.endswith('_fake_B.tif'):
             fake_mihc = imread(directory_name + "/" + filename)
             nosuff_name = filename[0:-11]
-            real_mihc_name = filename[0:-10]+'real_B.tif'
+            real_mihc_name = filename[0:-10]+'_real_B.tif'
             #real_mihc_name = filename[0:-11] + '.tif'
             real_mihc = imread(directory_name + '/' + real_mihc_name)
             real_cd3 = rgb2gray(real_mihc)
