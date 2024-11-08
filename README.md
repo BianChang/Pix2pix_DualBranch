@@ -62,7 +62,7 @@ This command calculates the evaluation metrics on the generated results and outp
 
 ### Checkpoints
 
-You can download the checkpoints used to reproduce the results in the paper [here](https://drive.google.com/uc?export=download&id=1rFO_-gMfF_BqeVXHLL4DFT5X3T4n8F1w).
+You can download the checkpoints [here](https://drive.google.com/file/d/1HNc-dj2ATN7gdAyOCy-lWe8_YQse2CTd/view?usp=drive_link).
 
 ### Citation
 
