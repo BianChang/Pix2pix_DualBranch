@@ -172,7 +172,7 @@ def compute_panck_ssim(directory_name):
         if filename.endswith('_fake_B.tif'):
             fake_mihc = imread(directory_name + "/" + filename)
             nosuff_name = filename[0:-11]
-            real_mihc_name = filename[0:-10]+'real_B.tif'
+            real_mihc_name = filename[0:-10]+'_real_B.tif'
             #real_mihc_name = filename[0:-11] + '.tif'
             real_mihc = imread(directory_name + '/' + real_mihc_name)
             real_panck = rgb2gray(real_mihc)
@@ -211,5 +211,4 @@ if __name__=='__main__':
     parser.add_argument("--srcdir", type=str, help="process this directory.")
     args = parser.parse_args()
     directory_name = args.srcdir
-    subdir = args.outdir
     compute_metrics(directory_name)
